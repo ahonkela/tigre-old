@@ -1,4 +1,4 @@
-gpdisimCreate <- function(Ngenes, Ntf, times, y, yvar, options, annotation=NULL, genes = NULL) {
+gpdisimCreate <- function(Ngenes, Ntf, times, y, yvar, options, genes = NULL, annotation=NULL) {
 
   if ( any(dim(y)!=dim(yvar)) )
     stop("The gene variances have a different size matrix to the gene values.")
@@ -35,26 +35,17 @@ gpdisimCreate <- function(Ngenes, Ntf, times, y, yvar, options, annotation=NULL,
   model$uniqueT <- sort(unique(times))
   lBounds <- c(min(diff(model$uniqueT)),
                (model$uniqueT[length(model$uniqueT)]-model$uniqueT[1]))
-  invWidthBounds <- c(2/(lBounds[2]^2), 2/(lBounds[1]^2))
+  invWidthBounds <- c(1/(lBounds[2]^2), 1/(lBounds[1]^2))
 
-  kernType1 <- list(type="multi", comp=list())
-  tieWidth <- 1
-  tieRBFVariance <- 2
-  kernType1$comp[[1]] <- list(type="parametric", realType="rbf",
-                              options=list(isNormalised=TRUE,
-                                inverseWidthBounds=invWidthBounds))
-  #kernType1$comp[[1]] <- "rbf"
-  for ( i in seq(1, Ngenes) ) {
-    if (model$gaussianInitial)
-      kernType1$comp[[i+1]] <- list(type="parametric", realType="disim",
-                                    options=list(gaussianInitial=TRUE,
-                                      isNormalised=TRUE,
-                                      inverseWidthBounds=invWidthBounds))
-    else
-      kernType1$comp[[i+1]] <- list(type="parametric", realType="disim",
-                                    options=list(isNormalised=TRUE,
-                                      inverseWidthBounds=invWidthBounds))
-  }
+  if (model$gaussianInitial)
+    myopts <- list(gaussianInitial=TRUE, isNormalised=TRUE,
+                   inverseWidthBounds=invWidthBounds)
+  else
+    myopts <- list(isNormalised=TRUE, inverseWidthBounds=invWidthBounds)
+  
+  kernType1 <- .gpsimKernelSpec(c('rbf', rep('disim', Ngenes)),
+                                myopts, exps=NULL)
+
   tieParam <- list(tieDelta="di_decay", tieWidth="inverseWidth",
                    tieSigma="di_variance", tieRBFVariance="rbf.?_variance")
 
@@ -68,7 +59,7 @@ gpdisimCreate <- function(Ngenes, Ntf, times, y, yvar, options, annotation=NULL,
       kernType2$comp[i] <- "white"        
 
     if ("singleNoise" %in% names(options) && options$singleNoise) {
-      tieParam$tieNoise <- "white._variance"
+      tieParam$tieNoise <- "white\\d+_variance"
     }
 
     model$kern <- kernCreate(times,
@@ -118,7 +109,7 @@ gpdisimCreate <- function(Ngenes, Ntf, times, y, yvar, options, annotation=NULL,
     model$bTransform <- "positive"
   }
 
-  if ( !is.null(annotation) ) {
+  if ( !is.null(annotation) && annotation != "" ) {
     model$annotation <- annotation
   }
 
@@ -176,8 +167,10 @@ gpdisimDisplay <- function(model, spaceNum=0)  {
 }
   
 
-gpdisimExtractParam <- function (model, only.values=TRUE) {
-  return (gpsimExtractParam(model, only.values=only.values))
+gpdisimExtractParam <- function (model, only.values=TRUE,
+                                 untransformed.values=FALSE) {
+  return (gpsimExtractParam(model, only.values=only.values,
+                            untransformed.values=untransformed.values))
 }
 
 
@@ -250,11 +243,11 @@ gpdisimLogLikelihood <- function (model) {
   ll <- -dim*log(2*pi) - model$logDetK - t(model$m) %*% model$invK %*% model$m
   ll <- 0.5*ll
 
-  ## prior contributions
-  #if ( "bprior" %in% names(model) ) {
-  #  ll <- ll + kernPriorLogProb(model$kern)
-  #  ll <- ll + priorLogProb(model$bprior, model$B)
-  #}
+  # prior contributions
+  ll <- ll + kernPriorLogProb(model$kern)
+  if ( "bprior" %in% names(model) ) {
+    ll <- ll + priorLogProb(model$bprior, model$B)
+  }
   return (ll)
 }
 
@@ -280,9 +273,8 @@ gpdisimLogLikeGradients <- function (model) {
     g <- kernGradient(model$kern, model$t, covGrad)
   }
 
-  #if ( "bprior" %in% names(model) ) {
-  #  g <- g + kernPriorGradient(model$kern)
-  #}
+  ## Prior contribution (will be zero if no prior)
+  g <- g + kernPriorGradient(model$kern)
 
   gmuFull <- t(model$m) %*% model$invK
 
@@ -322,9 +314,9 @@ gpdisimLogLikeGradients <- function (model) {
   func <- get(funcName$func, mode="function")
 
   ## prior contribution
-  #if ( "bprior" %in% names(model) ) {
-  #  gb <- gb + priorGradient(model$bprior, model$B)
-  #}
+  if ( "bprior" %in% names(model) ) {
+    gb <- gb + priorGradient(model$bprior, model$B)
+  }
 
   gb <- gb*func(model$B, "gradfact")
 
@@ -373,8 +365,10 @@ cgpdisimLogLikelihood <- function (model) {
 
 
 
-cgpdisimExtractParam <- function (model, only.values=TRUE) {
-  return (gpdisimExtractParam(model$comp[[1]], only.values=only.values))
+cgpdisimExtractParam <- function (model, only.values=TRUE,
+                                  untransformed.values=FALSE) {
+  return (gpdisimExtractParam(model$comp[[1]], only.values=only.values,
+                              untransformed.values=untransformed.values))
 }
 
 
@@ -448,7 +442,6 @@ gpdisimUpdateProcesses <- function (model, predt=NULL) {
   else
     proteinKern <- kernCreate(model$t, list(type="parametric", realType="sim",
                                             options=list(isNormalised=TRUE)))
-  #proteinKern <- kernCreate(model$t, "sim")
   proteinKern$inverseWidth <- simMultiKern$comp[[1]]$inverseWidth
   proteinKern$decay <- model$delta
   proteinKern$variance <- simMultiKern$comp[[2]]$di_variance
@@ -464,7 +457,6 @@ gpdisimUpdateProcesses <- function (model, predt=NULL) {
   ymean <- t(matrix(c(0, model$mu), model$numGenes+1, numData))
 
   predF <- K %*% model$invK %*% c(model$y-ymean)
-  #varF <- kernDiagCompute(proteinKern, predt) - apply(t(K)*(model$invK %*% t(K)), 2, sum)
   varF <- simMultiKern$comp[[1]]$variance * kernDiagCompute(proteinKern, predt) - apply(t(K)*(model$invK %*% t(K)), 2, sum) + 1e-15
 
   Kxx <- multiKernCompute(simMultiKern, predt, model$t)

@@ -1,4 +1,4 @@
-gpsimCreate <- function(Ngenes, Ntf, times, y, yvar, options, genes = NULL) {
+gpsimCreate <- function(Ngenes, Ntf, times, y, yvar, options, genes = NULL, annotation = NULL) {
 
   if ( any(dim(y)!=dim(yvar)) )
     stop("The gene variances have a different size matrix to the gene values.")
@@ -17,12 +17,12 @@ gpsimCreate <- function(Ngenes, Ntf, times, y, yvar, options, genes = NULL) {
   model$uniqueT <- sort(unique(times))
   lBounds <- c(min(diff(model$uniqueT)),
                (model$uniqueT[length(model$uniqueT)]-model$uniqueT[1]))
-  invWidthBounds <- c(2/(lBounds[2]^2), 2/(lBounds[1]^2))
+  invWidthBounds <- c(1/(lBounds[2]^2), 1/(lBounds[1]^2))
 
   if ("isNegativeS" %in% names(options) && options$isNegativeS)
-    isNegativeS = TRUE
+    isNegativeS <- TRUE
   else
-    isNegativeS = FALSE
+    isNegativeS <- FALSE
 
   if ("debug" %in% names(options))
     model$debug <- options$debug
@@ -137,6 +137,10 @@ gpsimCreate <- function(Ngenes, Ntf, times, y, yvar, options, genes = NULL) {
     model$genes <- genes
   }
 
+  if (!is.null(annotation)  && annotation != "") {
+    model$annotation <- annotation
+  }
+
   if ( "fix" %in% names(options) ) {
     params <- modelExtractParam(model, only.values=FALSE)
     model$fix <- options$fix
@@ -181,27 +185,46 @@ gpsimDisplay <- function(model, spaceNum=0)  {
 }
   
 
-gpsimExtractParam <- function (model, only.values=TRUE) {
+gpsimExtractParam <- function (model, only.values=TRUE,
+                               untransformed.values=FALSE) {
   funcName <- optimiDefaultConstraint(model$bTransform)
   func <- get(funcName$func, mode="function")
 
+  if (untransformed.values && "fix" %in% names(model)) {
+    params <- gpsimExtractParam(model, only.values=TRUE,
+                                untransformed.values=FALSE)
+    origparams <- params
+    for ( i in seq(along=model$fix$index) )
+      params[model$fix$index[i]] <- model$fix$value[i]
+
+    if (! all(params==origparams)) {
+      model <- gpsimExpandParam(model, params)
+    }
+  }
+  
   if ( only.values ) {
-    params <- kernExtractParam(model$kern)
-    # Note: ignores funcName$hasArgs
-    params <- c(params, func(model$B, "xtoa"))
+    params <- kernExtractParam(model$kern,
+                               untransformed.values=untransformed.values)
+    if (untransformed.values) {
+      params <- c(params, model$B)
+    } else {
+      # Note: ignores funcName$hasArgs
+      params <- c(params, func(model$B, "xtoa"))
+    }
   } else {
-    params <- kernExtractParam(model$kern, only.values)
-    # Note: ignores funcName$hasArgs
-    Bparams <- func(model$B, "xtoa")
+    params <- kernExtractParam(model$kern, only.values=only.values,
+                               untransformed.values=untransformed.values)
+    if (untransformed.values) {
+      Bparams <- model$B
+    } else {
+      # Note: ignores funcName$hasArgs
+      Bparams <- func(model$B, "xtoa")
+    }
     for ( i in seq(along=Bparams) ) {
       names(Bparams)[i] <- paste("Basal", i, sep="")
     }
     params <- c(params, Bparams)
   }
-
-  if ( "fix" %in% names(model) ) 
-    for ( i in seq(along=model$fix$index) )
-      params[model$fix$index[i]] <- model$fix$value[i]
 
   params <- Re(params)        
 
@@ -371,10 +394,10 @@ gpsimLogLikelihood <- function (model) {
   ll <- 0.5*ll
 
   ## prior contributions
-  #if ( "bprior" %in% names(model) ) {
-  #  ll <- ll + kernPriorLogProb(model$kern)
-  #  ll <- ll + priorLogProb(model$bprior, model$B)
-  #}
+  ll <- ll + kernPriorLogProb(model$kern)
+  if ( "bprior" %in% names(model) ) {
+    ll <- ll + priorLogProb(model$bprior, model$B)
+  }
   return (ll)
 }
 
@@ -390,9 +413,7 @@ gpsimLogLikeGradients <- function (model) {
     g <- kernGradient(model$kern, model$t, covGrad)
   }
 
-  #if ( "bprior" %in% names(model) ) {
-  #  g <- g + kernPriorGradient(model$kern)
-  #}
+  g <- g + kernPriorGradient(model$kern)
   
   gmuFull <- t(model$m) %*% model$invK
 
@@ -430,9 +451,9 @@ gpsimLogLikeGradients <- function (model) {
   func <- get(funcName$func, mode="function")
 
   ## prior contribution
-  #if ( "bprior" %in% names(model) ) {
-  #  gb <- gb + priorGradient(model$bprior, model$B)
-  #}
+  if ( "bprior" %in% names(model) ) {
+    gb <- gb + priorGradient(model$bprior, model$B)
+  }
 
   # Note: ignores funcName$hasArgs
   gb <- gb*func(model$B, "gradfact")
@@ -486,8 +507,10 @@ cgpsimLogLikelihood <- function (model) {
 
 
 
-cgpsimExtractParam <- function (model, only.values=TRUE) {
-  return (gpsimExtractParam(model$comp[[1]], only.values=only.values))
+cgpsimExtractParam <- function (model, only.values=TRUE,
+                                untransformed.values=FALSE) {
+  return (gpsimExtractParam(model$comp[[1]], only.values=only.values,
+                            untransformed.values=untransformed.values))
 }
 
 

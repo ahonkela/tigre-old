@@ -19,6 +19,9 @@
 \alias{gpdisimUpdateProcesses}
 \alias{cgpsimUpdateProcesses}
 \alias{gpsimUpdateProcesses}
+\alias{gammaPriorExpandParam}
+\alias{invgammaPriorExpandParam}
+\alias{priorExpandParam}
 
 \title{Update a model structure with new parameters or update the
   posterior processes.}
@@ -27,12 +30,14 @@
   or update the posterior processes.
 }
 \usage{
-model <- modelExpandParam(model, param)
+model <- modelExpandParam(model, param, untransformed.values=FALSE)
 model <- modelUpdateProcesses(model)
 }
 \arguments{
   \item{model}{the model structure to be updated.}
   \item{param}{vector of parameters.}
+  \item{untransformed.values}{vector contains actual values, not
+    transformed values used by the optimisers.}
 }
 \value{
   \item{model}{updated model structure.}

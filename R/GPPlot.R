@@ -1,7 +1,7 @@
 require(gplots)
 
-GPPlot <- function(data, savepath = '', 
-                   nameMapping = NULL, predt = NULL, fileOutput=FALSE) {
+GPPlot <- function(data, savepath = '', nameMapping = NULL,
+                   predt = NULL, fileOutput=FALSE, plotTime=NULL) {
   FONTSIZE <- 10;
   LINEWIDTH <- 1;
   MARKERSIZE <- 10;
@@ -16,6 +16,12 @@ GPPlot <- function(data, savepath = '',
       model <- data$model
     else
       model <- data
+  }
+
+  if ("annotation" %in% names(model$comp[[1]])) {
+    mapping <- try(getAnnMap("SYMBOL", model$comp[[1]]$annotation), silent=TRUE)
+    if (class(mapping) != "try-error")
+      nameMapping <- mapping
   }
 
   is_gpdisim_model <- (model$type == 'cgpdisim')
@@ -76,7 +82,7 @@ GPPlot <- function(data, savepath = '',
       if ( is.null(nameMapping) ) {
         genename <- genes[j]
       } else {
-        genename <- get(genes[j], env=nameMapping)
+        genename <- paste(get(genes[j], nameMapping), " (", genes[j], ")", sep='')
       }
       
       if ( j==1 && is_gpdisim_model ) {
@@ -84,12 +90,15 @@ GPPlot <- function(data, savepath = '',
       } else {
         title(paste(genename, "mRNA"))
       }
-      if ("realt" %in% names(model$comp[[i]]))
-        plotTime <- model$comp[[i]]$realt
-      else if ("timesCell" %in% names(model$comp[[i]]))
-        plotTime <- model$comp[[i]]$timesCell$mRNA
-      else
-        plotTime <- model$comp[[i]]$t
+
+      if (is.null(plotTime)) {
+        if ("realt" %in% names(model$comp[[i]]))
+          plotTime <- model$comp[[i]]$realt
+        else if ("timesCell" %in% names(model$comp[[i]]))
+          plotTime <- model$comp[[i]]$timesCell$mRNA
+        else
+          plotTime <- model$comp[[i]]$t
+      }
 
       # plotCI seems to generate a lot of spurious warnings
       warnOption <- getOption('warn')
@@ -103,4 +112,46 @@ GPPlot <- function(data, savepath = '',
     }
   }
  
+}
+
+
+plotTimeseries <- function(data, nameMapping=NULL) {
+  require(annotate)
+  
+  mapping <- try(getAnnMap("SYMBOL", annotation(data)), silent=TRUE)
+  if (class(mapping) != "try-error")
+    nameMapping <- mapping
+
+  exps <- unique(data$experiments)
+  tshifts <- seq(-0.2, 0.2, length.out=length(exps))
+
+  ngenes <- dim(data)[1]
+
+  nrows = floor(sqrt(ngenes))
+  par(mfrow = c(nrows, ceiling(ngenes / nrows)))
+
+  for (j in seq(ngenes)) {
+    for (i in exps) {
+      t <- data$modeltime[data$experiments==i] + tshifts[i]
+      m <- exprs(data)[j,data$experiments==i]
+      sd <- sqrt(var.exprs(data)[j,data$experiments==i])
+      probe <- featureNames(data)[j]
+      if (i==1) {
+        plot(t, m, type='l',
+             ylim=c(0, max(exprs(data)[j,] + 2*sqrt(var.exprs(data)[j,]))))
+      } else {
+        lines(t, m)
+      }
+      warnOption <- getOption('warn')
+      options(warn=-1)
+      plotCI(t, m,
+             uiw=2*sd, lwd=1, col=3, add=TRUE)
+      options(warn=warnOption)
+      if (!is.null(nameMapping)) {
+        title(paste(get(probe, nameMapping), " (", probe, ")", sep=''))
+      } else {
+        title(probe)
+      }
+    }
+  }
 }

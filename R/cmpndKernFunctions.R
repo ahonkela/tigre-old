@@ -50,7 +50,8 @@ cmpndKernParamInit <- function (kern) {
 
 
 
-cmpndKernExtractParam <- function (kern, only.values=TRUE) {
+cmpndKernExtractParam <- function (kern, only.values=TRUE,
+                                   untransformed.values=FALSE) {
 
   startVal <- 1
   endVal <- 0
@@ -59,7 +60,8 @@ cmpndKernExtractParam <- function (kern, only.values=TRUE) {
     params <- c()
 
     for ( i in seq(along=kern$comp) ) 
-      params <- c(params, kernExtractParam(kern$comp[[i]]))
+      params <- c(params, kernExtractParam(kern$comp[[i]],
+                                           untransformed.values=untransformed.values))
 
   } else {
     storedTypes <- c()
@@ -67,7 +69,8 @@ cmpndKernExtractParam <- function (kern, only.values=TRUE) {
     paramNames <- c()
     origNames <- c()
     for ( i in seq(along=kern$comp) ) {
-      paramsList <- kernExtractParam(kern$comp[[i]], only.values=only.values)
+      paramsList <- kernExtractParam(kern$comp[[i]], only.values=only.values,
+                                     untransformed.values=untransformed.values)
       params <- c(params, paramsList)
       kernName <- paste(kern$comp[[i]]$type, length(grep(kern$comp[[i]]$type, storedTypes))+1, sep="")
       paramName <- paste(kernName, names(paramsList), sep="_")
@@ -112,7 +115,7 @@ cmpndKernExpandParam <- function (kern, params) {
     kern$comp[[i]] <- kernExpandParam(kern$comp[[i]], params[startVal:endVal])
     startVal <- endVal+1
     if ( "white" %in% kern$comp[[i]]$type ) {
-      kern$whiteVariance <- kern$whiteVairance+kern$comp[[i]]$variance
+      kern$whiteVariance <- kern$whiteVariance+kern$comp[[i]]$variance
     } else if ( "whiteVariance" %in% names(kern$comp[[i]]) ) {
       kern$whiteVariance <- kern$whiteVariance+kern$comp[[i]]$whiteVariance
     }
@@ -222,7 +225,8 @@ cmpndKernGradX <- function (kern, X, X2) {
   func <- get(funcName, mode="function")
 
   if ( !is.na(kern$comp[[i]]$index) ) {
-    gX <- array(0, dim=c(length(X2), length(X2), length(X)))
+    gX <- array(0, dim=c(dim(as.array(X2))[1], dim(as.array(X2))[1],
+                     dim(as.array(X))[1]))
     gX[,kern$comp[[i]]$index,] <- func(kern$comp[[i]], X[,kern$comp[[i]]$index], X2[,kern$comp[[i]]$index])
   } else {
     gX <- func(kern$comp[[i]], X, X2)

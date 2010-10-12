@@ -230,20 +230,11 @@ SCGoptim <- function (x, fn, grad, options, ...) {
     fnew <- try( func(xnew, ...), silent=TRUE )
     if ( !is.finite(fnew) ) fi <- 1
     while ( !is.finite(fnew) ) {
-      if (display) {
-        if ( fi==1 ) {   
-	  message("\t function evaluation failed in SCG.")      
-        } else {      
-          message(".")
-        }
-      }
       alpha <- alpha/2
       xnew <- x+alpha*d
       fnew <- try( func(xnew, ...) )
       fi <- fi+1
       if ( is.finite(fnew) ) {
-        if (display)
-          message("\n")
         fi <- 0
       }
     }

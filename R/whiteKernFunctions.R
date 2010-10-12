@@ -16,7 +16,7 @@ whiteXwhiteKernCompute <- function (whiteKern1, whiteKern2, x1, x2) {
   if ( nargs()<4 )
     x2=x1
 
-  k <- matrix(0, nrow=length(x1), ncol=length(x2))
+  k <- matrix(0, nrow=dim(as.array(x1))[1], ncol=dim(as.array(x2))[1])
   return (k)  
 }
 
@@ -30,16 +30,21 @@ whiteKernDisplay <- function (kern, spaceNum=0) {
 
 whiteKernCompute <- function (kern, x, x2) {
   if ( nargs()<3 ) {
-    k <- kern$variance*diag(1, nrow=length(x), ncol=length(x))
+    xdim <- dim(as.array(x))[1]
+    k <- kern$variance*diag(1, nrow=xdim, ncol=xdim)
   } else {
-    k <- matrix(0, nrow=length(x), ncol=length(x2))
+    x1dim <- dim(as.array(x))[1]
+    x2dim <- dim(as.array(x2))[1]
+    k <- matrix(0, nrow=x1dim, ncol=x2dim)
   }
   return (k)
 }
 
 
 
-whiteKernExtractParam <- function (kern, only.values=TRUE) {
+# untransformed.values is ignored
+whiteKernExtractParam <- function (kern, only.values=TRUE,
+                                   untransformed.values=TRUE) {
   params <- c(kern$variance)
 
   if ( !only.values ) {
@@ -65,7 +70,7 @@ whiteKernExpandParam <- function (kern, params) {
 whiteKernGradient <- function (kern, x, x2, covGrad) {
   if ( nargs()==3 ) {
     covGrad <- x2
-    g <- sum(diag(covGrad))
+    g <- sum(diag(as.matrix(covGrad)))
   } else {
     g <- 0
   }  
@@ -91,6 +96,6 @@ whiteXwhiteKernGradient <- function (whiteKern1, whiteKern2, x1, x2, covGrad) {
 
 
 whiteKernDiagCompute <- function (kern, x) {
-  k <- matrix(kern$variance, length(x), 1)
+  k <- matrix(kern$variance, dim(as.array(x))[1], 1)
   return (k)
 }

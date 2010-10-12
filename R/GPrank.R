@@ -1,5 +1,5 @@
 GPLearn <- function(preprocData, TF = NULL, targets = NULL,
-                    useGpdisim = FALSE, randomize = FALSE,
+                    useGpdisim = !is.null(TF), randomize = FALSE,
                     addPriors = FALSE, fixedParams = FALSE,
                     initParams = NULL, initialZero = TRUE,
                     fixComps = NULL, dontOptimise = FALSE,
@@ -18,6 +18,14 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
     genes <- c(TF, targets)
   else
     genes <- targets
+
+  if (class(try(preprocData[genes,], silent=TRUE)) == "try-error") {
+    if (! all(TF %in% featureNames(preprocData))) {
+      stop("unknown TF")
+    } else {
+      stop("unknown target gene")
+    }
+  }
 
   # The preprocessed data is searched for the data of the specified genes.
   newData <- .getProcessedData(preprocData[genes,])
@@ -102,16 +110,23 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
   for ( i in seq(length=Nrep) ) {
     #repNames <- names(model$comp)
     if (useGpdisim) {
-      model$comp[[i]] <- gpdisimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = genes)
+      model$comp[[i]] <- gpdisimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=annotation(preprocData))
     }
     else {
-      model$comp[[i]] <- gpsimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = genes)
+      model$comp[[i]] <- gpsimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=annotation(preprocData))
     }
     #names(model$comp) <- c(repNames, paste("rep", i, sep=""))
     #if (fixedParams) {
     #  model$comp[[i]]$kern <- multiKernFixBlocks(model$comp[[i]]$kern, fixComps)
     #}
   }
+
+  optOptions <- optimiDefaultOptions()
+
+  optOptions$maxit <- 3000
+  optOptions$optimiser <- "SCG"
+  if (quiet)
+    optOptions$display <- FALSE
 
   if (randomize) {
     a <- modelExtractParam(model)
@@ -139,15 +154,8 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
     }
   }
 
-  optOptions <- optimiDefaultOptions()
-
-  optOptions$maxit <- 3000
-  optOptions$optimiser <- "SCG"
-  if (quiet)
-    optOptions$display <- FALSE
-
   if (!dontOptimise) {
-    message(c("Optimising genes", genes, "\n"), sep=" ")
+    message(paste(c("Optimising genes", paste(genes, collapse=' '), "\n"), sep=" "))
     model <- modelOptimise(model, optOptions)
   }
 
@@ -175,9 +183,21 @@ GPRankTargets <- function(preprocData, TF = NULL, knownTargets = NULL,
 
   if (is.list(testTargets))
     testTargets <- unlist(testTargets)
-  
+
   if (is.list(knownTargets))
     knownTargets <- unlist(knownTargets)
+  
+  if (!is.null(TF) && !all(TF %in% featureNames(preprocData))) {
+    stop("unknown TF")
+  }
+  
+  if (!all(knownTargets %in% featureNames(preprocData))) {
+    stop("unknown genes in knownTargets")
+  }
+  
+  if (class(try(preprocData[testTargets,], silent=TRUE)) == "try-error") {
+    stop("unknown genes in testTargets")
+  }
   
   if ('var.exprs' %in% assayDataElementNames(preprocData))
     testTargets <- .filterTargets(preprocData[testTargets,], filterLimit)
@@ -300,7 +320,15 @@ GPRankTFs <- function(preprocData, TFs, targets,
 
   genes = c(TFs, targets)
 
-  # Filtering the genes based on the calculated ratios. If the limit is 0, all genes are accepted.
+  if (class(try(preprocData[TFs,], silent=TRUE)) == "try-error") {
+    stop("unknown genes in TFs")
+  }
+
+  if (!all(targets %in% featureNames(preprocData))) {
+    stop("unknown genes in targets")
+  }
+  
+  ## Filtering the genes based on the calculated ratios. If the limit is 0, all genes are accepted.
   if ('var.exprs' %in% assayDataElementNames(preprocData))
     TFs <- .filterTargets(preprocData[TFs,], filterLimit)
   else

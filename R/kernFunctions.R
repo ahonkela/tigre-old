@@ -1,4 +1,4 @@
-kernCreate <- function(x, kernType) {
+kernCreate <- function(x, kernType, kernOptions=NULL) {
   if ( is.list(x) ) {
     dim <- array()
     for ( i in 1:length(x) ) {
@@ -16,8 +16,10 @@ kernCreate <- function(x, kernType) {
     kernOptions <- kernType$options
     kernType <- kernType$realType
   }
-  else
-    kernOptions <- NULL
+
+  if ( is.list(kernType) && ("options" %in% names(kernType)) ) {
+    kernOptions <- kernType$options
+  }
   
   if ( is.list(kernType) && ("complete" %in% names(kernType)) ) {
     if ( kernType$complete == 1 ) {
@@ -43,7 +45,7 @@ kernCreate <- function(x, kernType) {
         
         if ( is.list(x) ) {
           kern$comp[[i-start+1]] <- kernCreate(x[[i-start+1]], iType)
-          kern$diagBlockDim[i-start+1] <- length(x[[i-start+1]])
+          kern$diagBlockDim[i-start+1] <- dim(as.array(x[[i-start+1]]))[1]
         } else {
           kern$comp[[i-start+1]] <- kernCreate(x, iType)
         }
@@ -86,6 +88,12 @@ kernCreate <- function(x, kernType) {
   kern$Kstore <- matrix()
   kern$diagK <- matrix()      
 
+  if (!is.null(kernOptions) && "priors" %in% names(kernOptions)) {
+    kern$priors <- list()
+    for (k in seq_along(kernOptions$prior))
+      kern$priors[[k]] <- priorCreate(kernOptions$prior[[k]])
+  }
+  
   return (kern)
   
 }
@@ -105,16 +113,17 @@ kernParamInit <- function (kern) {
 
 
 
-kernExtractParam <- function (kern, only.values=TRUE) {
+kernExtractParam <- function (kern, only.values=TRUE, untransformed.values=FALSE) {
   funcName <- paste(kern$type, "KernExtractParam", sep="")
   func <- get(funcName, mode="function")
 
-  params <- func(kern, only.values=only.values)
+  params <- func(kern, only.values=only.values, untransformed.values=untransformed.values)
 
   if ( any(is.nan(params)) )
     warning("Parameter has gone to NaN.")
 
-  if ( "transforms" %in% names(kern) && (length(kern$transforms) > 0) )
+  if ( "transforms" %in% names(kern) && (length(kern$transforms) > 0)
+      && !untransformed.values )
     for ( i in seq(along=kern$transforms) ) {
       index <- kern$transforms[[i]]$index
       funcName <- optimiDefaultConstraint(kern$transforms[[i]]$type)
@@ -130,11 +139,12 @@ kernExtractParam <- function (kern, only.values=TRUE) {
 
 
 
-kernExpandParam <- function (kern, params) {
+kernExpandParam <- function (kern, params, untransformed.values=FALSE) {
   if ( is.list(params) )
     params <- params$values
   
-  if ( "transforms" %in% names(kern) && (length(kern$transforms) > 0) )
+  if ( "transforms" %in% names(kern) && (length(kern$transforms) > 0)
+      && !untransformed.values )
     for ( i in seq(along=kern$transforms) ) {
       index <- kern$transforms[[i]]$index
       funcName <- optimiDefaultConstraint(kern$transforms[[i]]$type)
@@ -162,7 +172,6 @@ kernDisplay <- function (kern, ...) {
   }
 
 }
-
 
 kernCompute <- function (kern, x, x2) {
 
@@ -193,6 +202,58 @@ kernGradient <- function (kern, x, ...) {
   return (g)
 }
 
+
+kernPriorLogProb <- function (kern) {
+  L <- 0
+  if (kern$type %in% c('cmpnd', 'multi', 'tensor')) {
+    for (i in seq_along(kern$comp)) {
+      L <- L + kernPriorLogProb(kern$comp[[i]])
+    }
+  } else {
+    if ("priors" %in% names(kern)) {
+      func <- get(paste(kern$type, 'KernExtractParam', sep=''), mode='function')
+      params <- func(kern)
+      for (i in seq_along(kern$priors)) {
+        index <- kern$priors[[i]]$index
+        L <- L + priorLogProb(kern$priors[[i]], params[index])
+      }
+    }
+  }
+  return (L)
+}
+
+
+kernPriorGradient <- function (kern) {
+  g <- array(0, kern$nParams)
+
+  if (kern$type %in% c('cmpnd', 'multi', 'tensor')) {
+    startVal <- 1
+    endVal <- 0
+    for (i in seq_along(kern$comp)) {
+      endVal <- endVal + kern$comp[[i]]$nParams
+      g[startVal:endVal] <- kernPriorGradient(kern$comp[[i]])
+      startVal <- endVal + 1
+    }
+    g = (g %*% kern$paramGroups)[1,]
+  } else {
+    if ("priors" %in% names(kern)) {
+      func <- get(paste(kern$type, 'KernExtractParam', sep=''), mode='function')
+      params <- func(kern)
+      for (i in seq_along(kern$priors)) {
+        index <- kern$priors[[i]]$index
+        g[index] <- g[index] + priorGradient(kern$priors[[i]], params[index])
+      }
+      # Check if parameters are being optimised in a transformed space.
+      if ("transforms" %in% names(kern)) {
+        factors <- .kernFactors(kern, "gradfact")
+        for (i in seq_along(factors))
+          g[factors[[i]]$index] <- g[factors[[i]]$index]*factors[[i]]$val
+      }
+    }
+  }
+
+  return (g)
+}
 
 
 .kernFactors <- function (kern, factorType) {
@@ -237,11 +298,22 @@ kernDiagGradX <- function (kern, x) {
 
 
 
-kernGradX <- function (kern, x) {
+kernGradX <- function (kern, x, x2) {
   funcName <- paste(kern$type, "KernGradX", sep="")
   func <- get(funcName, mode="function")
-  k <- func(kern, x)
+  k <- func(kern, x, x2)
   return (k)
+}
+
+
+.kernTestCombinationFunction <- function (kern1, kern2) {
+  funcName <- paste(kern1$type, "X", kern2$type, "KernCompute", sep="")
+
+  if ( !exists(funcName, mode="function") ) {
+    return (FALSE)
+  } else {
+    return (TRUE)
+  }
 }
 
 
@@ -269,13 +341,11 @@ multiKernParamInit <- function (kern) {
     kern$block[[i]] <- list(cross=array(), transpose=array())
 
     for ( j in seq(length.out=i-1) ) {
-      func <- paste(kern$comp[[i]]$type, "X", kern$comp[[j]]$type, "KernCompute", sep="")
-      if ( exists(func, mode="function") ) {
+      if ( .kernTestCombinationFunction(kern$comp[[i]], kern$comp[[j]]) ) {
         kern$block[[i]]$cross[j] <- paste(kern$comp[[i]]$type, "X", kern$comp[[j]]$type, sep="")
         kern$block[[i]]$transpose[j] <- FALSE
       } else {
-        func <- paste(kern$comp[[j]]$type, "X", kern$comp[[i]]$type, "KernCompute", sep="")
-        if ( exists(func, mode="function") ) {
+        if ( .kernTestCombinationFunction(kern$comp[[j]], kern$comp[[i]]) ) {
           kern$block[[i]]$cross[j] <- paste(kern$comp[[j]]$type, "X", kern$comp[[i]]$type, sep="")
           kern$block[[i]]$transpose[j] <- TRUE
         } else {
@@ -302,8 +372,10 @@ multiKernParamInit <- function (kern) {
 
 
 
-multiKernExtractParam <- function (kern, only.values=TRUE) {
-  return (cmpndKernExtractParam(kern, only.values=only.values))
+multiKernExtractParam <- function (kern, only.values=TRUE,
+                                   untransformed.values=FALSE) {
+  return (cmpndKernExtractParam(kern, only.values=only.values,
+                                untransformed.values=untransformed.values))
 }
 
 
@@ -345,11 +417,11 @@ multiKernCompute <- function (kern, x, x2=x) {
     dim2 <- array(0, dim=length(x))
     
     for ( i in seq(length=kern$numBlocks) ) {
-      dim1[i] <- length(x[[i]])
+      dim1[i] <- dim(as.array(x[[i]]))[1]
       if ( nargs()>2 ) {
         if ( length(x) != length(x2) )
           stop ("Time information is not matched within the block!")
-        dim2[i] <- length(x2[[i]])
+        dim2[i] <- dim(as.array(x2[[i]]))[1]
       } else {
         dim2[i] <- dim1[i]
       }
@@ -387,10 +459,10 @@ multiKernCompute <- function (kern, x, x2=x) {
     }
   } else {
                                         # non-cell part
-    dim1 = length(x)
+    dim1 = dim(as.array(x))[1]
     
     if ( nargs() > 2 ) {
-      dim2 = length(x2)
+      dim2 = dim(as.array(x2))[1]
     } else {
       dim2 = dim1;
     }
@@ -431,8 +503,6 @@ multiKernCompute <- function (kern, x, x2=x) {
 
   return (K)
 }
-
-
 
 .multiKernComputeBlock <- function (kern, i, j, x1, x2=NULL) {
   if ( i==j ) {
@@ -494,10 +564,10 @@ multiKernGradient <- function (kern, x, x2, covGrad) {
     dim1 <- array()
     dim2 <- array()
     for ( i in seq(length=kern$numBlocks) ) {
-      dim1[i] <- length(x[[i]])
+      dim1[i] <- dim(as.array(x[[i]]))[1]
       arg1[[i]] <- x[[i]]
       if ( nargs()>3 ) {
-        dim2[i] <- length(x2[[i]])
+        dim2[i] <- dim(as.array(x2[[i]]))[1]
         arg2[[i]] <- x2[[i]]
       } else {
         dim2[i] <- dim1[i]
@@ -542,11 +612,11 @@ multiKernGradient <- function (kern, x, x2, covGrad) {
       startVal <- endVal + 1
     }
 
-  } else {
-    dim1 <- length(x)
+  } else {   # non-list x
+    dim1 <- dim(as.array(x))[1]
     arg1 <- x
     if ( nargs() > 3 ) {
-      dim2 <- length(x2)
+      dim2 <- dim(as.array(x2))[1]
       arg2 <- x2
     } else {
       dim2 <- dim1
@@ -690,28 +760,29 @@ multiKernGradient <- function (kern, x, x2, covGrad) {
 
 multiKernDiagCompute <- function (kern, x) {
   if ( is.list(x) ) {
-    dim <- 0
-    for ( i in seq(along=x) )
-      dim <- dim + length(x[[i]])
+    xdim <- 0
+    for ( i in seq_along(x) )
+      xdim <- xdim + dim(as.array(x[[i]]))[1]
 
-    k <- matrix(0, dim, 1)
+    k <- matrix(0, xdim, 1)
     startVal <- 1
-    endVal <- length(x[[1]])
+    endVal <- dim(as.array(x[[1]]))[1]
     for ( i in seq(along=kern$comp) ) {
 
       k[startVal:endVal] <- kernDiagCompute(kern$comp[[i]], x[[i]])
       startVal <- endVal + 1
       if ( (i+1)<=length(kern$comp) )
-        endVal <- endVal + length(x[[i+1]])
+        endVal <- endVal + dim(as.array(x[[i+1]]))[1]
     }
   } else {
-    k <- array(0, length(x)*kern$numBlocks)
+    xdim <- dim(as.array(x))[1]
+    k <- array(0, xdim*kern$numBlocks)
     startVal <- 1
-    endVal <- length(x)
+    endVal <- xdim
     for ( i in seq(along=kern$comp) ) {
       k[startVal:endVal] <- kernDiagCompute(kern$comp[[i]], x)
       startVal <- endVal + 1
-      endVal <- endVal + length(x)
+      endVal <- endVal + xdim
     }
   }
 

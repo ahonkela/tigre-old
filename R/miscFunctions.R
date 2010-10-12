@@ -7,13 +7,13 @@ expTransform <- function (x, transform="atox") {
   y <- array(0, dim(as.array(x)))
 
   if ( "atox" == transform ) {
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       if ( x[ind] > thre ) y[ind] <- maxVal else
       if ( x[ind] < -thre ) y[ind]<- eps else
       y[ind] <- exp(x[ind])
     }
   } else if ( "xtoa" == transform ) {
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       y[ind] <- .complexLog(x[ind])
     }
   } else if ( "gradfact" == transform )
@@ -31,7 +31,7 @@ sigmoidTransform <- function (x, transform="atox") {
   y <- array(0, dim(as.array(x)))
 
   if ( "atox" == transform ) {
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       if ( x[ind] > thre )
         y[ind] <- 1-eps
       else if ( x[ind] < -thre )
@@ -40,7 +40,7 @@ sigmoidTransform <- function (x, transform="atox") {
         y[ind] <- 1/(1+exp(-x[ind]))
     }
   } else if ( "xtoa" == transform ) {
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       y[ind] <- .complexLog(x[ind]/(1-x[ind]))
     }
   } else if ( "gradfact" == transform )
@@ -58,7 +58,7 @@ boundedTransform <- function (x, transform="atox", bounds) {
   y <- array(0, dim(as.array(x)))
 
   if ( "atox" == transform ) {
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       if ( x[ind] > thre )
         y[ind] <- 1-eps
       else if ( x[ind] < -thre )
@@ -69,7 +69,7 @@ boundedTransform <- function (x, transform="atox", bounds) {
     y <- (bounds[2] - bounds[1])*y + bounds[1]
   } else if ( "xtoa" == transform ) {
     x <- (x - bounds[1]) / (bounds[2] - bounds[1])
-    for ( ind in 1:length(as.array(x)) ) {
+    for ( ind in seq_along(as.array(x)) ) {
       y[ind] <- .complexLog(x[ind]/(1-x[ind]))
     }
   } else if ( "gradfact" == transform ) {
@@ -97,11 +97,12 @@ modelTieParam <- function (model, paramsList) {
       if ( length(paramInd) == 0 )
         warning(paste("No matches for parameter tie spec:", paramsList[[i]]))
     }
-    else
+    else {
       paramInd <- sort(paramsList[[i]])
 
-    if ( any(paramInd[1]==columnToDel) )
-      stop("Parameters have already been tied.")
+      if ( any(paramInd[1]==columnToDel) )
+        stop("Parameters have already been tied.")
+    }
 
     if ( length(paramInd) > 1 )
       for ( j in seq(2,length.out=(length(paramInd)-1)) ) {
@@ -124,6 +125,34 @@ modelTieParam <- function (model, paramsList) {
   return (model)
 }
 
+.jitChol <- function ( M, Num=10, silent=FALSE ) {
+  jitter <- 0
+  jitter1 <- abs(mean(diag(M)))*1e-6
+  eyeM <- diag( 1, nrow=length(M[,1]), ncol=length(M[1,]) )
+
+  for ( i in 1:Num ) {
+    ## clear the last error message
+    try(stop(""),TRUE)
+
+    Ch <- try( chol( M + jitter*eyeM ), silent=TRUE )
+
+    nPos <- grep("not positive definite",  geterrmessage())
+
+    if ( length(nPos) != 0 ) {
+      jitter1 <- jitter1*10
+      jitter <- jitter1
+
+      if (! silent) {
+        warnmsg <- paste("Matrix is not positive definite, adding",
+                         signif(jitter,digits=4), "jitter!")
+        warning(warnmsg)
+      }
+    }
+    else break
+  }
+
+  return (list(chol=Ch, jitter=jitter))
+}
 
 
 .jitCholInv <- function ( M, Num=10, silent=FALSE ) {
@@ -153,16 +182,12 @@ modelTieParam <- function (model, paramsList) {
     else break
   }
 
-  try(stop(""),TRUE)
+  invCh <- try (solve( Ch, eyeM ), silent=TRUE)
 
-  try (solve( Ch, eyeM ), silent=TRUE)
-  SingErr <- grep("singular",  geterrmessage())
-
-  if ( length(SingErr) != 0 ) {
+  if ( class(invCh) == "try-error" ) {
     return (NaN)
   }
   else {
-    invCh <- solve( Ch, eyeM )
     invM <- invCh %*% t(invCh)
 
     if ( jitter == 0 ) {
@@ -206,8 +231,12 @@ lnDiffErfs <- function(x1, x2) {
   x2 <- as.matrix(x2)
   outdim <- pmax(dim(x1), dim(x2))
   outlen <- max(length(x1), length(x2))
-  v <- .C("_ClnDiffErfs", as.double(x1), as.double(x2), as.integer(length(x1)), as.integer(length(x2)), v=double(outlen), s=integer(outlen))
-  return (list(matrix(data=v$v, outdim), matrix(data=v$s, outdim)));
+  if (outlen > 0) {
+    v <- .C("_ClnDiffErfs", as.double(x1), as.double(x2), as.integer(length(x1)), as.integer(length(x2)), v=double(outlen), s=integer(outlen))
+    return (list(matrix(data=v$v, outdim), matrix(data=v$s, outdim)));
+  } else {
+    return (list(matrix(nrow=0, ncol=0), matrix(nrow=0, ncol=0)));
+  }
 }
 
 
@@ -222,13 +251,15 @@ lnDiffErfs <- function(x1, x2) {
 
 
 
-modelExtractParam <- function (model, only.values=TRUE) {
+modelExtractParam <- function (model, only.values=TRUE,
+                               untransformed.values=FALSE) {
   if (is.GPModel(model))
     model <- modelStruct(model)
   
   funcName <- paste(model$type, "ExtractParam", sep="")
   func <- get(funcName, mode="function")
-  params <- func(model, only.values)
+  params <- func(model, only.values=only.values,
+                 untransformed.values=untransformed.values)
 
   if ( !only.values ) {
     origNames <- names(params)
@@ -395,6 +426,18 @@ modelLogLikelihood <- function (model) {
   r <- .5 * sum((x - y)^2)
 
   return (r)
+}
+
+
+.gpsimKernelSpec <- function(comps, options, exps=NULL) {
+  kernType <- list(type="multi", comp=list())
+
+  for (i in seq_along(comps)) {
+    kernType$comp[[i]] <- list(type="parametric", realType=comps[i],
+                               options=options)
+  }
+
+  return (kernType);
 }
 
 
