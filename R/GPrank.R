@@ -155,7 +155,11 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
   }
 
   if (!dontOptimise) {
-    message(paste(c("Optimising genes", paste(genes, collapse=' '), "\n"), sep=" "))
+    if (useGpdisim) {
+      message(paste("Optimising the model for TF", TF, "and targets", paste(genes, collapse=' '), sep=" "))
+    } else {
+      message(paste("Optimising the model for targets", paste(genes, collapse=' '), sep=" "))
+    }
     model <- modelOptimise(model, optOptions)
   }
 

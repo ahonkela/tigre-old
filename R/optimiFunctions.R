@@ -113,7 +113,10 @@ CGoptim <- function (x, fn, grad, options, ...) {
     dnorm <- sqrt(sum(direction*direction))
     line_dir <- direction / dnorm
     ## cat ("\n line_dir :", line_dir, "\n\n")
-    lnSch <- try( optimize(.fn_line, options[[2]], para0=x_old, direction=line_dir, fun=fn, ...) )
+    ow <- options("warn")
+    options(warn=2)
+    lnSch <- try( optimize(.fn_line, options[[2]], para0=x_old, direction=line_dir, fun=fn, ...), silent=TRUE )
+    options(ow)
 
     if ( is.list(lnSch) ) {
       x <- x_old + lnSch$minimum * line_dir		
@@ -227,12 +230,18 @@ SCGoptim <- function (x, fn, grad, options, ...) {
     alpha <- (-mu/delta)[1]
 
     xnew <- x+alpha*d
+    ow <- options("warn")
+    options(warn=2)
     fnew <- try( func(xnew, ...), silent=TRUE )
+    options(ow)
     if ( !is.finite(fnew) ) fi <- 1
     while ( !is.finite(fnew) ) {
       alpha <- alpha/2
       xnew <- x+alpha*d
-      fnew <- try( func(xnew, ...) )
+      ow <- options("warn")
+      options(warn=2)
+      fnew <- try( func(xnew, ...), silent=TRUE )
+      options(ow)
       fi <- fi+1
       if ( is.finite(fnew) ) {
         fi <- 0

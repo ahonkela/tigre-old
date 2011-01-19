@@ -133,9 +133,12 @@ modelTieParam <- function (model, paramsList) {
   for ( i in 1:Num ) {
     ## clear the last error message
     try(stop(""),TRUE)
+    ow <- options("warn")
+    options(warn=2)
 
     Ch <- try( chol( M + jitter*eyeM ), silent=TRUE )
 
+    options(ow)
     nPos <- grep("not positive definite",  geterrmessage())
 
     if ( length(nPos) != 0 ) {
@@ -164,9 +167,12 @@ modelTieParam <- function (model, paramsList) {
 
     ## clear the last error message
     try(stop(""),TRUE)
+    ow <- options("warn")
+    options(warn=2)
 
     Ch <- try( chol( M + jitter*eyeM ), silent=TRUE )
 
+    options(ow)
     nPos <- grep("not positive definite",  geterrmessage())
 
     if ( length(nPos) != 0 ) {
@@ -182,7 +188,10 @@ modelTieParam <- function (model, paramsList) {
     else break
   }
 
+  ow <- options("warn")
+  options(warn=2)
   invCh <- try (solve( Ch, eyeM ), silent=TRUE)
+  options(ow)
 
   if ( class(invCh) == "try-error" ) {
     return (NaN)

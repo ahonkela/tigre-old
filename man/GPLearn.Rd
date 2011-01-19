@@ -19,8 +19,9 @@
 }
 \arguments{
   \item{preprocData}{The preprocessed data to be used.}
-  \item{TF}{The transcription factor of the model. In GPsim, there can
-    be only one transcription factor for each model.}
+  \item{TF}{The probe corresponding to the transcription factor (TF) mRNA
+    if TF protein translation model is used, or NULL (default) if the
+    translation model is not used.}
   \item{targets}{The target genes of the model.}
   \item{useGpdisim}{A logical value determining whether a model of
     translation is included.  By default TRUE if TF is set, FALSE
