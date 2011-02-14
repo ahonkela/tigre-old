@@ -107,13 +107,18 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
   else
     model <- list(type="cgpsim")
 
+  if (length(annotation(preprocData)) > 0)
+    dataAnnotation <- annotation(preprocData)
+  else
+    dataAnnotation <- NULL
+
   for ( i in seq(length=Nrep) ) {
     #repNames <- names(model$comp)
     if (useGpdisim) {
-      model$comp[[i]] <- gpdisimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=annotation(preprocData))
+      model$comp[[i]] <- gpdisimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=dataAnnotation)
     }
     else {
-      model$comp[[i]] <- gpsimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=annotation(preprocData))
+      model$comp[[i]] <- gpsimCreate(Ngenes, Ntf, times, t(y[[i]]), t(yvar[[i]]), options, genes = featureNames(preprocData[genes,]), annotation=dataAnnotation)
     }
     #names(model$comp) <- c(repNames, paste("rep", i, sep=""))
     #if (fixedParams) {
@@ -156,9 +161,9 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
 
   if (!dontOptimise) {
     if (useGpdisim) {
-      message(paste("Optimising the model for TF", TF, "and targets", paste(genes, collapse=' '), sep=" "))
+      message(paste(c("Optimising the model.\nTF: ", TF, "\nTargets: ", paste(targets, collapse=' '), "\n"), sep=" "))
     } else {
-      message(paste("Optimising the model for targets", paste(genes, collapse=' '), sep=" "))
+      message(paste(c("Optimising the model.\nTargets: ", paste(genes, collapse=' '), "\n"), sep=" "))
     }
     model <- modelOptimise(model, optOptions)
   }
