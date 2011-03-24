@@ -1,6 +1,9 @@
 Package: tigre
 ==============
 
+Version: 1.5.3 [2011-03-24]
+* Function documentation updates
+
 Version: 1.4.2 / 1.5.2 [2011-02-14]
 * Fix scoreList::sort when including NA values
 * Fixes for working with non-Affymetrix data

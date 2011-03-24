@@ -17,18 +17,24 @@
   \tabular{ll}{
     Package: \tab tigre\cr
     Type: \tab Package\cr
-    Version: \tab 1.0.0\cr
-    Date: \tab 2010-04-22\cr
+    Version: \tab 1.6.0\cr
+    Date: \tab 2011-03-24\cr
     License: \tab A-GPL Version 3\cr
   }
   For details of using the package please refer to the Vignette.
 }
 \author{
-  Antti Honkela, Pei Gao, Jonatan Ropponen, Magnus Rattray, Neil D. Lawrence
+  Antti Honkela, Pei Gao, Jonatan Ropponen, Miika-Petteri Matikainen, Magnus Rattray, Neil D. Lawrence
 
-  Maintainer: Antti Honkela <antti.honkela@tkk.fi>
+  Maintainer: Antti Honkela <antti.honkela@hiit.fi>
 }
 \references{
+  A.~Honkela, P.~Gao, J.~Ropponen, M.~Rattray, and N.~D.~Lawrence.
+  tigre: Transcription factor Inference through Gaussian
+  process Reconstruction of Expression for Bioconductor.
+  \emph{Bioinformatics}, 2011.
+  DOI: 10.1093/bioinformatics/btr057.
+
   P.~Gao, A.~Honkela, M.~Rattray, and N.~D.~Lawrence.
   Gaussian process modelling of latent chemical species:
   applications to inferring transcription factor activities.

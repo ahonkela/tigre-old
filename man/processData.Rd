@@ -15,10 +15,10 @@
   \code{\link{GPLearn}} and \code{\link{GPRankTargets}}.
 }
 \usage{
-preprocData <- processData(data, times = NULL, experiments = NULL,
-  do.normalisation = TRUE)
-preprocData <- processRawData(rawData, times, experiments = NULL,
-  is.logged = TRUE, do.normalisation = ifelse(is.logged, TRUE, FALSE))
+  processData(data, times = NULL, experiments = NULL,
+    do.normalisation = TRUE)
+  processRawData(rawData, times, experiments = NULL,
+    is.logged = TRUE, do.normalisation = ifelse(is.logged, TRUE, FALSE))
 }
 \arguments{
   \item{data}{The preprocessed data (\code{\linkS4class{exprReslt}})
