@@ -17,8 +17,8 @@
   \tabular{ll}{
     Package: \tab tigre\cr
     Type: \tab Package\cr
-    Version: \tab 1.6.0\cr
-    Date: \tab 2011-03-24\cr
+    Version: \tab 1.6.1\cr
+    Date: \tab 2011-04-26\cr
     License: \tab A-GPL Version 3\cr
   }
   For details of using the package please refer to the Vignette.

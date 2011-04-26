@@ -254,6 +254,9 @@ GPRankTargets <- function(preprocData, TF = NULL, knownTargets = NULL,
 
     allArgs$fixedParams <- TRUE
     allArgs$initParams <- baselineParameters
+    J <- grep('Basal', names(allArgs$initParams))
+    names(allArgs$initParams)[J] <-
+      paste(names(allArgs$initParams)[J], '$', sep='')
     allArgs$fixComps <- 1:numberOfKnownGenes
   }
   else {
