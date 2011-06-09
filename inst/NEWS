@@ -1,6 +1,10 @@
 Package: tigre
 ==============
 
+Version: 1.7.2 [2011-06-09]
+* R-2.14 compatibility fix
+* Minor speed optimisations
+
 Version: 1.6.1 / 1.7.1 [2011-04-26]
 * Fix: target ranking now works with >= 10 known targets
   (thanks to Jake Michaelson for the report)
