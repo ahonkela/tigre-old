@@ -1,6 +1,9 @@
 Package: tigre
 ==============
 
+Version: 1.7.3 [2011-08-08]
+* Direct support for variances for Illumina Bead Array data from lumi.
+
 Version: 1.7.2 [2011-06-09]
 * R-2.14 compatibility fix
 * Minor speed optimisations
