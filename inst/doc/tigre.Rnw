@@ -453,7 +453,7 @@ example above, FLYBASE gene numbers are also added to the genes in the
 database. The insertion of alias annotations and z-scores requires that the
 preprocessed data is supplied.
 
-\section{SessionInfo}
+\section{Session Info}
 
 \begin{Schunk}
 \begin{Sinput}

@@ -164,7 +164,7 @@ GPPlot(model)
 Please refer to the User Guide for details on bulk ranking of
 candidate targets.
 
-\section{SessionInfo}
+\section{Session Info}
 
 <<sessionInfo>>=
 sessionInfo()
