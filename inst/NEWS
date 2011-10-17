@@ -1,6 +1,11 @@
 Package: tigre
 ==============
 
+Version: 1.7.4 [2011-10-17]
+* Fix to variance scaling in plots of models with TF mRNA measurements
+* Prettier default plot style
+* Minor documentation updates
+
 Version: 1.7.3 [2011-08-08]
 * Direct support for variances for Illumina Bead Array data from lumi.
 
