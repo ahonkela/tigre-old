@@ -460,7 +460,7 @@ preprocessed data is supplied.
 > sessionInfo()
 \end{Sinput}
 \begin{Soutput}
-R version 2.14.0 beta (2011-10-16 r57266)
+R version 2.14.0 RC (2011-10-23 r57410)
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
 locale:
@@ -476,14 +476,14 @@ attached base packages:
 [6] methods   base     
 
 other attached packages:
-[1] drosgenome1.db_2.6.3  org.Dm.eg.db_2.6.3   
+[1] drosgenome1.db_2.6.3  org.Dm.eg.db_2.6.4   
 [3] RSQLite_0.10.0        DBI_0.2-5            
-[5] annotate_1.31.1       AnnotationDbi_1.15.38
-[7] tigre_1.7.4           Biobase_2.13.11      
+[5] annotate_1.31.2       AnnotationDbi_1.15.40
+[7] tigre_1.7.5           Biobase_2.13.11      
 
 loaded via a namespace (and not attached):
  [1] affy_1.31.6           affyio_1.21.2        
- [3] BiocInstaller_1.1.28  gdata_2.8.2          
+ [3] BiocInstaller_1.1.29  gdata_2.8.2          
  [5] gplots_2.10.1         gtools_2.6.2         
  [7] IRanges_1.11.31       preprocessCore_1.15.0
  [9] puma_2.5.0            tools_2.14.0         
