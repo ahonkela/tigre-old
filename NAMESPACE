@@ -1,5 +1,7 @@
 useDynLib("tigre", "_ClnDiffErfs")
 
+importFrom(BiocGenerics, updateObject)
+
 importClassesFrom(Biobase, AnnotatedDataFrame, AssayData, eSet, ExpressionSet,
                   MIAME, Versioned, VersionedBiobase, Versions)
 
@@ -9,7 +11,7 @@ importMethodsFrom(AnnotationDbi, as.list, colnames, exists, get, ncol,
                   revmap, tail)
 
 importMethodsFrom(Biobase, annotation, experimentData, exprs,
-                 featureData, featureNames, phenoData, updateObject)
+                 featureData, featureNames, phenoData)
 
 importMethodsFrom(DBI, dbCommit, dbConnect, dbDisconnect, dbDriver,
                   dbGetQuery, dbListTables)
