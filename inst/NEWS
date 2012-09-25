@@ -1,6 +1,11 @@
 Package: tigre
 ==============
 
+Version: 1.12.0
+
+* Minor speed optimisation
+* Minor documentation reorganisation and updates
+
 Version: 1.8.0
 
 NEW FEATURES

@@ -1,6 +1,7 @@
 \name{GPModel-class}
 \Rdversion{1.1}
 \docType{class}
+\alias{GPModel}
 \alias{GPModel-class}
 \alias{is.GPModel}
 \alias{modelStruct}

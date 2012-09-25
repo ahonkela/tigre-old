@@ -1,6 +1,7 @@
 \name{scoreList-class}
 \Rdversion{1.1}
 \docType{class}
+\alias{scoreList}
 \alias{scoreList-class}
 \alias{write.scores}
 \alias{genes}
