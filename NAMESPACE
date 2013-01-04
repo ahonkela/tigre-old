@@ -32,7 +32,7 @@ importFrom(gplots, plotCI)
 
 importFrom(graphics, layout, lines, par, plot, title)
 
-importFrom(methods, "@<-", callNextMethod, new)
+importFrom(methods, callNextMethod, new)
 
 importFrom(RSQLite, SQLite)
 
