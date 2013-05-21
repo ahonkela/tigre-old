@@ -499,8 +499,8 @@ generateModels <- function(preprocData, scores) {
 
   expids <- unique(experiments)
   for (i in seq(along=expids)) {
-    ylist[[i]] <- y[,experiments==expids[i]]
-    yvarlist[[i]] <- yvar[,experiments==expids[i]]
+    ylist[[i]] <- y[,experiments==expids[i], drop=FALSE]
+    yvarlist[[i]] <- yvar[,experiments==expids[i], drop=FALSE]
   }
   times <- times[experiments==expids[1]]
 

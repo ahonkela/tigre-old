@@ -39,7 +39,8 @@ GPPlot <- function(data, savepath = '', nameMapping = NULL,
 
   if (numGenes <= 2) {
     v <- matrix(seq(1, (numGenes+1)*length(model$comp)), nrow=(numGenes+1))
-    v[1:2,] <- v[seq(2, 1, by=-1),]
+    if (is_gpdisim_model)
+      v[1:2,] <- v[seq(2, 1, by=-1),]
     layout(v)
     singlePlot <- TRUE
   }

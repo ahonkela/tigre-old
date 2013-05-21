@@ -1,6 +1,13 @@
 Package: tigre
 ==============
 
+Version: 1.14.1
+
+BUG FIXES
+
+* Various fixes for non-cascade ODE model (i.e. model not using TF mRNA data)
+  (thanks to Andrea Ocone for the report)
+
 Version: 1.12.0
 
 * Minor speed optimisation

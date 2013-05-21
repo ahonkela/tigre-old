@@ -304,7 +304,7 @@ gpsimExpandParam <- function (model, params) {
 
   if ( ("proteinPrior" %in% names(model)) && ("timesCell" %in% names(model)) ) {
     k <- Re(kernCompute(model$kern, model$timesCell))
-    noiseVar <- c(array(eps, model$kern$comp[[1]]$diagBlockDim[1], 1), model$yvar)
+    noiseVar <- c(rep(eps, length(model$timesCell$protein)), model$yvar)
   } else {
     k <- Re(kernCompute(model$kern, model$t))
     noiseVar <- c(as.array(model$yvar))
@@ -319,7 +319,7 @@ gpsimExpandParam <- function (model, params) {
       cat("\n")
       cat("kern$sensitivity = \n", model$S, "\n")
       cat("\n")
-      cat("kern$flength = \n", model$kern$comp[1]$flength, "\n")
+      cat("kern$inverseWidth = \n", model$kern$comp[[1]]$inverseWidth, "\n")
       cat("\n")
     }
     stop("Singular chol(K) matrix!")
@@ -610,8 +610,8 @@ gpsimUpdateProcesses <- function (model, predt=NULL) {
       varExprs[,i] <- varFull[[i+1]]
     }
 
-    predExprs <- predExprs[1:(length(predt)-length(t)),]
-    varExprs <- varExprs[1:(length(predt)-length(t)),]
+    predExprs <- predExprs[1:(length(predt)-length(t)),,drop=FALSE]
+    varExprs <- varExprs[1:(length(predt)-length(t)),,drop=FALSE]
 
   } else {
     proteinKern <- kernCreate(model$t, "rbf")
@@ -631,8 +631,8 @@ gpsimUpdateProcesses <- function (model, predt=NULL) {
 
     predExprs <- matrix(predX, length(predt), model$numGenes)
     varExprs <- matrix(varX, length(predt), model$numGenes)
-    predExprs <- predExprs[1:(length(predt)-length(t)),]
-    varExprs <- varExprs[1:(length(predt)-length(t)),]                
+    predExprs <- predExprs[1:(length(predt)-length(t)),,drop=FALSE]
+    varExprs <- varExprs[1:(length(predt)-length(t)),,drop=FALSE]
   }
 
   predF <- predF[1:(length(predt)-length(t))]
