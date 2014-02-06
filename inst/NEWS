@@ -1,6 +1,10 @@
 Package: tigre
 ==============
 
+Version: 1.16.1
+
+* More informative error messages
+
 Version: 1.14.1
 
 BUG FIXES

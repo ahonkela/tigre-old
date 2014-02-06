@@ -1,9 +1,5 @@
-require(Biobase)
-
 processData <- function(data, times = NULL, experiments = NULL, do.normalisation=TRUE) {
   if (class(data) == "exprReslt") {
-    require(puma)
-
     yFull <- exprs(data)
     genes <- featureNames(data)
 

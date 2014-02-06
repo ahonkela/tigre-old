@@ -11,6 +11,12 @@ GPLearn <- function(preprocData, TF = NULL, targets = NULL,
       assign(names(allArgs)[[i]], allArgs[[i]])
   }
 
+  if (class(preprocData) != "ExpressionTimeSeries")
+    stop("preprocData should be an instance of ExpressionTimeSeries. Please use processData or processRawData to create one.")
+
+  if (is.null(targets))
+    stop("no target genes specified, unable to define a model")
+
   if (is.list(targets))
     targets <- unlist(targets)
   
@@ -187,6 +193,9 @@ GPRankTargets <- function(preprocData, TF = NULL, knownTargets = NULL,
                           scoreSaveFile = NULL,
                           datasetName = "", experimentSet = "") {
 
+  if (class(preprocData) != "ExpressionTimeSeries")
+    stop("preprocData should be an instance of ExpressionTimeSeries. Please use processData or processRawData to create one.")
+
   if (is.null(testTargets))
     testTargets <- featureNames(preprocData)
 
@@ -323,6 +332,9 @@ GPRankTFs <- function(preprocData, TFs, targets,
                       returnModels = FALSE, options = NULL,
                       scoreSaveFile = NULL,
                       datasetName = "", experimentSet = "") {
+  if (class(preprocData) != "ExpressionTimeSeries")
+    stop("preprocData should be an instance of ExpressionTimeSeries. Please use processData or processRawData to create one.")
+
   if (is.null(targets)) stop("No targets specified.")
 
   if (is.list(targets))
