@@ -1,5 +1,3 @@
-require(gplots)
-
 GPPlot <- function(data, savepath = '', nameMapping = NULL,
                    predt = NULL, fileOutput=FALSE, plotTime=NULL) {
   FONTSIZE <- 10;
@@ -132,8 +130,6 @@ GPPlot <- function(data, savepath = '', nameMapping = NULL,
 
 
 plotTimeseries <- function(data, nameMapping=NULL) {
-  require(annotate)
-  
   mapping <- try(getAnnMap("SYMBOL", annotation(data)), silent=TRUE)
   if (class(mapping) != "try-error")
     nameMapping <- mapping

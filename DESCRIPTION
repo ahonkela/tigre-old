@@ -1,12 +1,12 @@
 Package: tigre
-Version: 1.17.0
-Date: 2013-05-21
+Version: 1.17.1
+Date: 2014-02-06
 Title: Transcription factor Inference through Gaussian process Reconstruction of Expression
 Author: Antti Honkela, Pei Gao, Jonatan Ropponen, Miika-Petteri Matikainen, Magnus Rattray, Neil D. Lawrence
 Maintainer: Antti Honkela <antti.honkela@hiit.fi>
 Depends: R (>= 2.11.0), BiocGenerics, Biobase
-Imports: methods, BiocGenerics, Biobase, AnnotationDbi, gplots, graphics, puma, stats, utils, annotate, DBI, RSQLite
-Suggests: puma, drosgenome1.db, annotate, lumi
+Imports: methods, AnnotationDbi, gplots, graphics, puma, stats, utils, annotate, DBI, RSQLite
+Suggests: drosgenome1.db, lumi
 Description: The tigre package implements our methodology of Gaussian
  process differential equation models for analysis of gene expression
  time series from single input motif networks. The package can be used
