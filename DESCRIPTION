@@ -1,6 +1,6 @@
 Package: tigre
-Version: 1.17.2
-Date: 2014-02-06
+Version: 1.17.3
+Date: 2014-03-11
 Title: Transcription factor Inference through Gaussian process
         Reconstruction of Expression
 Author: Antti Honkela, Pei Gao, Jonatan Ropponen, Miika-Petteri
@@ -19,4 +19,5 @@ Description: The tigre package implements our methodology of Gaussian
         TF.
 License: AGPL-3
 URL: http://www.bioinf.manchester.ac.uk/resources/tiger/
-biocViews: Microarray, TimeCourse, GeneExpression, Transcription
+biocViews: Microarray, TimeCourse, GeneExpression, Transcription,
+	   GeneRegulation, NetworkInference, Bayesian
