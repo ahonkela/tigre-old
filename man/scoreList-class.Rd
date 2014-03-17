@@ -25,6 +25,7 @@
 \alias{experimentSet}
 \alias{experimentSet<-}
 \alias{[,scoreList-method}
+\alias{[,scoreList,ANY-method}
 \alias{c,scoreList-method}
 \alias{write.scores,scoreList-method}
 \alias{genes,scoreList-method}
