@@ -231,7 +231,6 @@ setMethod("c", signature(x="scoreList"),
                 experimentSet=lists[[1]]@experimentSet)
           })
 
-setGeneric("sort", function(x, decreasing=FALSE, ...) standardGeneric("sort"))
 setMethod("sort", signature(x="scoreList"), 
           function(x, decreasing=FALSE, ...) {
             x[order(loglikelihoods(x), decreasing=decreasing, na.last=NA)]

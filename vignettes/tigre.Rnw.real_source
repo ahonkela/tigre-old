@@ -1,21 +1,20 @@
 %\VignetteIndexEntry{tigre User Guide}
 %\VignetteKeywords{TimeCourse, GeneExpression, Transcription}
-%\VignetteDepends{Biobase, annotate, puma}
+%\VignetteDepends{Biobase, annotate, puma, BiocStyle}
 %\VignettePackage{tigre}
 \documentclass[a4paper]{article}
 \usepackage{url}
-\usepackage{hyperref}
-\usepackage[authoryear,round]{natbib}
+
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
 
 \title{tigre User Guide}
 \author{Antti Honkela, Pei Gao,\\
   Jonatan Ropponen, Miika-Petteri Matikainen,\\
   Magnus Rattray, and Neil D. Lawrence}
 
-\newcommand{\Rfunction}[1]{{\texttt{#1}}}
-\newcommand{\Robject}[1]{{\texttt{#1}}}
-\newcommand{\Rpackage}[1]{{\textit{#1}}}
-\newcommand{\tigre}{\Rpackage{tigre}}
+\newcommand{\tigre}{\Biocpkg{tigre}}
 
 \begin{document}
 \maketitle
@@ -35,9 +34,9 @@ candidate targets of a TF.
 The \tigre{} package is based on a body of methodological research.
 Citing \tigre{} in publications will usually involve citing one or
 more of the methodology papers
-\citep{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
+\cite{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
 based on as well as citing the software package itself
-\citep{Honkela2011}.
+\cite{Honkela2011}.
 
 <<echo=FALSE, eval=TRUE>>=
 options(width = 60)
@@ -48,7 +47,7 @@ options(width = 60)
 
 In this section we introduce the main functions of the \Rpackage{puma}
 package by repeating some of the analysis from the PNAS
-paper~\citep{Honkela2010PNAS}\footnote{Note that the results reported
+paper~\cite{Honkela2010PNAS}\footnote{Note that the results reported
   in the paper were run using an earlier version of this package for
   MATLAB, so there can be minor differences.}.
 
@@ -123,7 +122,7 @@ data(drosophila_gpsim_fragment)
 \subsection{Learning individual models}
 
 Let us now recreate some the models shown in the plots of the PNAS
-paper~\citep{Honkela2010PNAS}:
+paper~\cite{Honkela2010PNAS}:
 <<>>=
 # FBgn names of target genes
 targets <- c('FBgn0003486', 'FBgn0033188', 'FBgn0035257')
@@ -365,7 +364,6 @@ preprocessed data is supplied.
 sessionInfo()
 @ 
 
-\bibliographystyle{plainnat}
 \bibliography{gpsim}
 
 \end{document}

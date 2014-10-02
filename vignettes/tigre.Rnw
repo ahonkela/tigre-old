@@ -1,21 +1,20 @@
 %\VignetteIndexEntry{tigre User Guide}
 %\VignetteKeywords{TimeCourse, GeneExpression, Transcription}
-%\VignetteDepends{Biobase, annotate, puma}
+%\VignetteDepends{Biobase, annotate, puma, BiocStyle}
 %\VignettePackage{tigre}
 \documentclass[a4paper]{article}
 \usepackage{url}
-\usepackage{hyperref}
-\usepackage[authoryear,round]{natbib}
+
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
 
 \title{tigre User Guide}
 \author{Antti Honkela, Pei Gao,\\
   Jonatan Ropponen, Miika-Petteri Matikainen,\\
   Magnus Rattray, and Neil D. Lawrence}
 
-\newcommand{\Rfunction}[1]{{\texttt{#1}}}
-\newcommand{\Robject}[1]{{\texttt{#1}}}
-\newcommand{\Rpackage}[1]{{\textit{#1}}}
-\newcommand{\tigre}{\Rpackage{tigre}}
+\newcommand{\tigre}{\Biocpkg{tigre}}
 
 \usepackage{Sweave}
 \begin{document}
@@ -36,9 +35,9 @@ candidate targets of a TF.
 The \tigre{} package is based on a body of methodological research.
 Citing \tigre{} in publications will usually involve citing one or
 more of the methodology papers
-\citep{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
+\cite{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
 based on as well as citing the software package itself
-\citep{Honkela2011}.
+\cite{Honkela2011}.
 
 
 \section{Introductory example analysis - Drosophila development}
@@ -46,7 +45,7 @@ based on as well as citing the software package itself
 
 In this section we introduce the main functions of the \Rpackage{puma}
 package by repeating some of the analysis from the PNAS
-paper~\citep{Honkela2010PNAS}\footnote{Note that the results reported
+paper~\cite{Honkela2010PNAS}\footnote{Note that the results reported
   in the paper were run using an earlier version of this package for
   MATLAB, so there can be minor differences.}.
 
@@ -131,7 +130,7 @@ included in this package and can be loaded using
 \subsection{Learning individual models}
 
 Let us now recreate some the models shown in the plots of the PNAS
-paper~\citep{Honkela2010PNAS}:
+paper~\cite{Honkela2010PNAS}:
 \begin{Schunk}
 \begin{Sinput}
 > # FBgn names of target genes
@@ -228,7 +227,7 @@ The models can be plotted using commands like
 
 \begin{figure}
   \begin{center}
-\includegraphics{tigre-009}
+\includegraphics{tigre-010}
 \end{center}
 \caption{Single target models for the gene FBgn0003486. The models for
   each repeated time series are shown in different columns.}
@@ -236,7 +235,7 @@ The models can be plotted using commands like
 
 \begin{figure}
   \begin{center}
-\includegraphics{tigre-010}
+\includegraphics{tigre-011}
 \end{center}
 \caption{Multiple-target model for all the example genes.  The
   call creates independent figures for each repeated time series.}
@@ -244,7 +243,7 @@ The models can be plotted using commands like
 
 \begin{figure}
   \begin{center}
-\includegraphics{tigre-011}
+\includegraphics{tigre-012}
 \end{center}
 \caption{Multiple-target model without TF protein translation for
   selected example genes without.  The
@@ -460,38 +459,37 @@ preprocessed data is supplied.
 > sessionInfo()
 \end{Sinput}
 \begin{Soutput}
-R version 2.14.0 RC (2011-10-23 r57410)
+R version 3.1.1 (2014-07-10)
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
 locale:
  [1] LC_CTYPE=fi_FI.UTF-8       LC_NUMERIC=C              
  [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
  [5] LC_MONETARY=fi_FI.UTF-8    LC_MESSAGES=en_GB.UTF-8   
- [7] LC_PAPER=C                 LC_NAME=C                 
+ [7] LC_PAPER=fi_FI.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
 [11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets 
-[6] methods   base     
+[1] stats4    parallel  stats     graphics  grDevices
+[6] utils     datasets  methods   base     
 
 other attached packages:
-[1] drosgenome1.db_2.6.3  org.Dm.eg.db_2.6.4   
-[3] RSQLite_0.10.0        DBI_0.2-5            
-[5] annotate_1.31.2       AnnotationDbi_1.15.40
-[7] tigre_1.7.5           Biobase_2.13.11      
+ [1] drosgenome1.db_3.0.0  org.Dm.eg.db_3.0.0   
+ [3] RSQLite_0.11.4        DBI_0.3.1            
+ [5] annotate_1.43.5       XML_3.98-1.1         
+ [7] AnnotationDbi_1.27.16 GenomeInfoDb_1.1.23  
+ [9] IRanges_1.99.28       S4Vectors_0.2.4      
+[11] tigre_1.19.1          Biobase_2.25.0       
+[13] BiocGenerics_0.11.5  
 
 loaded via a namespace (and not attached):
- [1] affy_1.31.6           affyio_1.21.2        
- [3] BiocInstaller_1.1.29  gdata_2.8.2          
- [5] gplots_2.10.1         gtools_2.6.2         
- [7] IRanges_1.11.31       preprocessCore_1.15.0
- [9] puma_2.5.0            tools_2.14.0         
-[11] xtable_1.6-0          zlibbioc_0.1.8       
+[1] BiocStyle_1.3.14   bitops_1.0-6       caTools_1.17.1    
+[4] gdata_2.13.3       gplots_2.14.2      gtools_3.4.1      
+[7] KernSmooth_2.23-13 tools_3.1.1        xtable_1.7-4      
 \end{Soutput}
 \end{Schunk}
 
-\bibliographystyle{plainnat}
 \bibliography{gpsim}
 
 \end{document}

@@ -8,8 +8,8 @@
   Affymetrix microarray gene expression data set by Tomancak et
   al. (2002).
 
-  The data has been processed using \code{\link{mmgmos}} and
-  \code{\link{processData}}.
+  The data has been processed using \code{mmgmos} from \code{puma}
+  package and \code{\link{processData}}.
 }
 \usage{data(drosophila_gpsim_fragment)}
 \format{An \code{\linkS4class{ExpressionTimeSeries}} object with

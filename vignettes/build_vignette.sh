@@ -6,7 +6,8 @@ else
     Rbinary="$1" ;
 fi
 
-ln -s tigre.Rnw.real_source tigre.Rnw
+rm tigre.Rnw
+cp -p tigre.Rnw.real_source tigre.Rnw
 $Rbinary CMD Sweave tigre.Rnw
 rm tigre.Rnw
 mv tigre.tex tigre.Rnw

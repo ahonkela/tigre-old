@@ -3,16 +3,16 @@
 %\VignettePackage{tigre}
 \documentclass[a4paper]{article}
 \usepackage{url}
-\usepackage[authoryear,round]{natbib}
+
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
 
 \title{tigre Quick Guide}
 \author{Antti Honkela, Pei Gao, Jonatan Ropponen, \\
   Magnus Rattray, and Neil D. Lawrence}
 
-\newcommand{\Rfunction}[1]{{\texttt{#1}}}
-\newcommand{\Robject}[1]{{\texttt{#1}}}
-\newcommand{\Rpackage}[1]{{\textit{#1}}}
-\newcommand{\tigre}{\Rpackage{tigre}}
+\newcommand{\tigre}{\Biocpkg{tigre}}
 
 \begin{document}
 \maketitle
@@ -37,9 +37,9 @@ the \tigre{} User Guide.
 The \tigre{} package is based on a body of methodological research.
 Citing \tigre{} in publications will usually involve citing one or
 more of the methodology papers
-\citep{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
+\cite{Honkela2010PNAS,Gao2008,Lawrence2007} that the software is
 based on as well as citing the software package itself
-\citep{Honkela2011}.
+\cite{Honkela2011}.
 
 <<echo=FALSE, eval=TRUE>>=
 options(width = 60)
@@ -50,7 +50,7 @@ options(width = 60)
 
 In this section we introduce the main functions of the \Rpackage{puma}
 package by repeating some of the analysis from the PNAS
-paper~\citep{Honkela2010PNAS}\footnote{Note that the results reported
+paper~\cite{Honkela2010PNAS}\footnote{Note that the results reported
   in the paper were run using an earlier version of this package for
   MATLAB, so there can be minor differences.}.
 
@@ -170,7 +170,6 @@ candidate targets.
 sessionInfo()
 @ 
 
-\bibliographystyle{plainnat}
 \bibliography{gpsim}
 
 \end{document}
